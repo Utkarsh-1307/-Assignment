@@ -1,0 +1,47 @@
+Ans 1-: By default, Django signals are executed synchronously. This means that the signal handlers are executed in the same process and immediately after the signal is sent. 
+The sinppet is below-
+
+import time
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+
+@receiver(post_save, sender=User)
+def my_signal_handler(sender, instance, created, **kwargs):
+    print("Signal handler started")
+    time.sleep(5)  # Simulat
+    print("Signal handler finished")
+
+# Somewhere in your code where a User object is being saved
+user = User.objects.create(username="testuser")
+
+print("User saved")
+
+Ans 2-  Yes, Django signals run in the same thread as the caller by default.
+the sinppet is below-
+
+@receiver(post_save, sender=User)
+def my_signal_handler(sender, instance, created, **kwargs):
+    print(f"Signal handler running in thread: {threading.current_thread().name}")
+
+# Somewhere in your code where a User object is being saved
+print(f"Main code running in thread: {threading.current_thread().name}")
+user = User.objects.create(username="testuser")
+
+Ans 3-Yes, by default, Django signals run in the same database transaction as the caller.
+the snippet is below-
+@receiver(post_save, sender=User)
+def my_signal_handler(sender, instance, created, **kwargs):
+    if created:
+        # Check if the transaction is active
+        print(f"Is transaction active in signal handler? {transaction.get_connection().in_atomic_block}")
+
+# Somewhere in your code where a User object is being saved inside a transaction
+with transaction.atomic():
+    user = User.objects.create(username="testuser")
+    print(f"Is transaction active in main code? {transaction.get_connection().in_atomic_block}")
+
+
+
+
+
